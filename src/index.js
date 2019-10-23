@@ -1,46 +1,61 @@
 const express = require('express')
-const POST = process.env.PORT || 3000
+require('./db/mongoose')
+const User = require('./models/user').User
+const Task = require('./models/task').Task
+const PORT = process.env.PORT || 3000
 
 const app = express()
 
 app.use(express.json())
 
-app.listen(PORT, (e) => {
-    console.log(`Server is up on port ${e}`)
+app.post('/users', async (req, res) => {
+
+    const { user } = req.body
+    const newUser = new User(user)
+    try {
+        const userSaved = await newUser.save()
+        res.status(201).send({OK:true, userSaved})
+    } catch (error) {
+        res.status(400).send({OK:false, error})           
+    }
 })
 
-// const User = mongoose.model('User', {
-//     name: {
-//         type:String,
-//         required:true,
-//         trim:true
-//     },
-//     email:{
-//         type:String,
-//         required:true,
-//         trim:true
-//     },
-//     age: {
-//         type:Number,
-//         min:0
-//     },
-//     password:{
-//         type:String,
-//         required:true,
-//         trim:true
-//     }
-// })
+app.patch('/users/:id', async(req, res) => {
 
-// const Task = mongoose.model('Task', {
-//     description:{
-//         type:String,
-//         required:true
-//     },
-//     completed: {
-//         type:Boolean,
-//         default:false,
-//         required:true
-//     }
-// })
+    const { id } = req.params
+    const { user } = req.body
+    const updates = Object.keys(user)
+    const validUpdates = ['name', 'age', 'email', 'password']
+    const isValidOperation = updates.every(update => validUpdates.includes(update) )
 
+    if(!isValidOperation){
+        return res.status(400).send({OK:false, error:'There was an error trying to update the row'})
+    }
+
+    try {
+        const userUpdated = await User.findByIdAndUpdate(id, user , {new:true, runValidators:true})
+        res.status(200).send({OK:true, userUpdated})
+    } catch (error) {
+        res.status(400).send({OK:false, error})                   
+    }
+})
+
+app.post('/tasks', async (req, res) => {
+
+    const { description } = req.body.task
+
+    const task = new Task({description})
+
+    try {
+        const taskSaved = await task.save()
+        res.status(201).send(taskSaved)
+    } catch (error) {
+        res.status(400).send({OK:false, error})   
+    }
+
+})
+
+app.listen(PORT, () => {
+    console.log(`Server is up on port ${PORT}`)
+})
 
