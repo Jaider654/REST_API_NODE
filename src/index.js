@@ -1,59 +1,15 @@
 const express = require('express')
 require('./db/mongoose')
-const User = require('./models/user').User
-const Task = require('./models/task').Task
+const taskRouter = require('./routes/task')
+const userRouter = require('./routes/user')
 const PORT = process.env.PORT || 3000
 
 const app = express()
 
 app.use(express.json())
 
-app.post('/users', async (req, res) => {
-
-    const { user } = req.body
-    const newUser = new User(user)
-    try {
-        const userSaved = await newUser.save()
-        res.status(201).send({OK:true, userSaved})
-    } catch (error) {
-        res.status(400).send({OK:false, error})           
-    }
-})
-
-app.patch('/users/:id', async(req, res) => {
-
-    const { id } = req.params
-    const { user } = req.body
-    const updates = Object.keys(user)
-    const validUpdates = ['name', 'age', 'email', 'password']
-    const isValidOperation = updates.every(update => validUpdates.includes(update) )
-
-    if(!isValidOperation){
-        return res.status(400).send({OK:false, error:'There was an error trying to update the row'})
-    }
-
-    try {
-        const userUpdated = await User.findByIdAndUpdate(id, user , {new:true, runValidators:true})
-        res.status(200).send({OK:true, userUpdated})
-    } catch (error) {
-        res.status(400).send({OK:false, error})                   
-    }
-})
-
-app.post('/tasks', async (req, res) => {
-
-    const { description } = req.body.task
-
-    const task = new Task({description})
-
-    try {
-        const taskSaved = await task.save()
-        res.status(201).send(taskSaved)
-    } catch (error) {
-        res.status(400).send({OK:false, error})   
-    }
-
-})
+app.use(taskRouter)
+app.use(userRouter)
 
 app.listen(PORT, () => {
     console.log(`Server is up on port ${PORT}`)
