@@ -43,7 +43,15 @@ app.patch('/users/:id', async(req, res) => {
     }
 
     try {
-        const userUpdated = await User.findByIdAndUpdate(id, user , {new:true, runValidators:true})
+        // const userUpdated = await User.findByIdAndUpdate(id, user , {new:true, runValidators:true})
+        const user = await User.findById(id)
+        updates.forEach(update => user[update] = req.body.user[update])
+        const userUpdated = await user.save()
+
+        if(!userUpdated){
+            return res.status(400).send({OK:false})
+        }
+
         res.status(200).send({OK:true, userUpdated})
     } catch (error) {
         res.status(400).send({OK:false, error})                   

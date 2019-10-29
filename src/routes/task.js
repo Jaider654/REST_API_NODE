@@ -31,7 +31,13 @@ app.patch('/task/:id', async (req, res) => {
     }
 
     try {
-        const taskUpdated = await Task.findByIdAndUpdate(id, task, {runValidators:true, new:true})
+
+        // const taskUpdated = await Task.findByIdAndUpdate(id, task, {runValidators:true, new:true})
+        const task = await Task.findById(id)
+        updates.forEach(update => task[update] = req.body.task[update])
+        
+        const taskUpdated = await task.save()
+
         res.status(200).send({OK:true, taskUpdated})
     } catch (error) {
         res.status(400).send({OK:false, error})   
