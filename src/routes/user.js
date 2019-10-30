@@ -1,5 +1,6 @@
 const express = require('express')
 const { User } = require('../models/user')
+const auth = require('../middleware/auth')
 const app = express.Router()
 
 app.post('/users/login', async (req, res) => {
@@ -13,7 +14,7 @@ app.post('/users/login', async (req, res) => {
     } 
 })
 
-app.post('/users', async (req, res) => {
+app.post('/users', auth ,async (req, res) => {
 
     const { user } = req.body
     const newUser = new User(user)
@@ -24,6 +25,22 @@ app.post('/users', async (req, res) => {
     } catch (error) {
         res.status(400).send({OK:false, error})           
     }
+})
+
+
+app.post('/users/logout', auth  ,async (req, res) => {
+
+    try {
+        req.user.tokens = req.user.tokens.filter( token => token.token !== req.token ) 
+        await req.user.save()
+        res.send({OK:true, msg:'Logged out correctly'})
+    } catch (error) {
+        res.status(500).send()
+    }
+})
+
+app.get('/users/me', auth ,async (req, res) => {
+    res.send(req.user)
 })
 
 app.get('/users/:id', async (req, res) => {
