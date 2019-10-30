@@ -1,16 +1,18 @@
 const express = require('express')
 const { Task } = require('../models/task')
+const auth = require('../middleware/auth')
 const app = express.Router()
 
-app.post('/tasks', async (req, res) => {
+app.post('/tasks', auth, async (req, res) => {
 
-    const { description } = req.body.task
-
-    const task = new Task({description})
+    const task = new Task({
+        ...req.body.task, 
+        owner: req.user._id 
+    })
 
     try {
-        const taskSaved = await task.save()
-        res.status(201).send(taskSaved)
+        await task.save()
+        res.status(201).send({OK:true, task })
     } catch (error) {
         res.status(400).send({OK:false, error})   
     }
@@ -18,8 +20,7 @@ app.post('/tasks', async (req, res) => {
 })
 
 
-app.patch('/task/:id', async (req, res) => {
-    
+app.patch('/tasks/:id', auth, async (req, res) => {
     const { id } = req.params
     const { task } = req.body
     const updates = Object.keys(task)
@@ -31,26 +32,27 @@ app.patch('/task/:id', async (req, res) => {
     }
 
     try {
-
-        // const taskUpdated = await Task.findByIdAndUpdate(id, task, {runValidators:true, new:true})
-        const task = await Task.findById(id)
+        const task = await Task.findOne({_id: id, owner: req.user._id})
+        if(!task){
+            return res.status(404).send({OK:false, msg:'Task not found'})
+        }
         updates.forEach(update => task[update] = req.body.task[update])
-        
-        const taskUpdated = await task.save()
+        await task.save()
+        res.status(200).send({OK:true, task})
 
-        res.status(200).send({OK:true, taskUpdated})
     } catch (error) {
         res.status(400).send({OK:false, error})   
     }
 
 })
 
-app.get('/task/:id', async (req, res) => {
+app.get('/tasks/:id', auth, async (req, res) => {
     
     const { id } = req.params
 
     try {
-        const task = await Task.findById(id)
+        const task = await Task.findOne({_id: id, owner:req.user._id})
+        
         if(!task){
             return res.status(404).send({OK:false, msg:'There is no records whit this id'})
         }
@@ -62,17 +64,17 @@ app.get('/task/:id', async (req, res) => {
 })
 
 
-app.delete('/task/:id', async (req, res) => {
+app.delete('/tasks/:id', auth ,async (req, res) => {
     const { id } = req.params
 
     try {
-        const taskDeleted = await Task.findByIdAndDelete(id)
+        const task = await Task.findOneAndDelete({_id:id, owner:req.user._id})
 
-        if(!taskDeleted){
+        if(!task){
             return res.status(404).send({OK:true, msg:'Unable to remove a task with this id'})
         }
 
-        res.status(200).send({OK:true, taskDeleted})
+        res.status(200).send({OK:true, task})
     } catch (error) {
         res.status(400).send({OK:false, error})  
     }

@@ -9,11 +9,15 @@ const taskSchema =  mongoose.Schema({
         type:Boolean,
         default:false,
         required:true
+    },
+    owner:{
+        type: mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:'User'
     }
 })
 
 taskSchema.pre('save', async function(next){
-    console.log('Just before saving')
     next()
 })
 
