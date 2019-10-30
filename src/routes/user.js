@@ -14,7 +14,7 @@ app.post('/users/login', async (req, res) => {
     } 
 })
 
-app.post('/users', auth ,async (req, res) => {
+app.post('/users', async (req, res) => {
 
     const { user } = req.body
     const newUser = new User(user)
@@ -43,25 +43,9 @@ app.get('/users/me', auth ,async (req, res) => {
     res.send(req.user)
 })
 
-app.get('/users/:id', async (req, res) => {
-    const { id } = req.params
 
-    try {
-        const user = await User.findById(id)
+app.patch('/users/me', auth, async(req, res) => {
 
-        if(!user){
-            return res.status(404).send({OK:false, mgs:'No user with that id'})
-        }
-
-        res.status(200).send({OK:true, user})
-    } catch (error) {
-        res.status(400).send({OK:false, error})
-    }
-})
-
-app.patch('/users/:id', async(req, res) => {
-
-    const { id } = req.params
     const { user } = req.body
     const updates = Object.keys(user)
     const validUpdates = ['name', 'age', 'email', 'password']
@@ -72,35 +56,22 @@ app.patch('/users/:id', async(req, res) => {
     }
 
     try {
-        // const userUpdated = await User.findByIdAndUpdate(id, user , {new:true, runValidators:true})
-        const user = await User.findById(id)
-        updates.forEach(update => user[update] = req.body.user[update])
-        const userUpdated = await user.save()
-
-        if(!userUpdated){
-            return res.status(400).send({OK:false})
-        }
-
-        res.status(200).send({OK:true, userUpdated})
+        updates.forEach(update => req.user[update] = req.body.user[update])
+        await req.user.save()
+        res.status(200).send({OK:true, user: req.user})
     } catch (error) {
         res.status(400).send({OK:false, error})                   
     }
 })
 
-app.delete('/users/:id', async (req, res) => {
+app.delete('/users/me', auth ,async (req, res) => {
     
-    const { id } = req.params
-     try {
-        const userDeleted = await User.findByIdAndDelete(id)
-
-        if(!userDeleted){
-            return res.status(404).json({OK:false, msg:'Unable to delete user with this id'})
-        }
-
-        res.status(200).send({OK: true, userDeleted}) 
-     } catch (error) {
-         res.status(400).send({OK:true})
-     }
+    try {
+        await req.user.remove()
+        res.status(200).send({OK: true, user:req.user}) 
+    } catch (error) {
+        res.status(400).send({OK:true})
+    }
 
 })
 
