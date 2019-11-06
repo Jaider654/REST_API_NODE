@@ -74,7 +74,11 @@ app.get('/tasks', auth, async (req, res) => {
     try {
         await req.user.populate({
             path:'tasks',
-            match
+            match,
+            options:{
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip)
+            }
         }).execPopulate()
         
         res.status(200).send({OK:true, tasks: req.user.tasks})
