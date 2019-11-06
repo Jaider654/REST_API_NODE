@@ -63,6 +63,27 @@ app.get('/tasks/:id', auth, async (req, res) => {
 
 })
 
+app.get('/tasks', auth, async (req, res) => {
+    
+    const match = {}
+
+    if(req.query.completed){
+        match.completed = req.query.completed === 'true'
+    }
+
+    try {
+        await req.user.populate({
+            path:'tasks',
+            match
+        }).execPopulate()
+        
+        res.status(200).send({OK:true, tasks: req.user.tasks})
+    } catch (error) {
+        res.status(400).send({OK:false, error})
+    }
+
+})
+
 
 app.delete('/tasks/:id', auth ,async (req, res) => {
     const { id } = req.params
