@@ -2,9 +2,20 @@ const express = require('express')
 require('./db/mongoose')
 const taskRouter = require('./routes/task')
 const userRouter = require('./routes/user')
+const app = express()
 const PORT = process.env.PORT || 3000
 
-const app = express()
+const multer = require('multer')
+const upload = multer({
+    dest: 'src/upload/images',
+    limits:{
+        fileSize: 1000000
+    }
+})
+
+app.post('/upload', upload.single('avatar'), (req, res) => {
+    res.send()
+})
 
 app.use(express.json())
 
