@@ -57,18 +57,38 @@ app.get('/users/me', auth ,async (req, res) => {
     res.send(req.user)
 })
 
-app.post('/user/me/avatar', auth, upload.single('avatar'), async (req, res) => {
-    req.user.avatar = req.file.buffer
-    await req.user.save()
-    res.send()
+app.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    try {
+        req.user.avatar = req.file.buffer
+        await req.user.save()
+        res.send()
+    } catch (error) {
+        res.status(400).send({OK:false})
+    }
+    
+
 }, (error, req, res, next) => {
     res.status(400).send({OK:false, error:error.message})
 })
 
-app.delete('/user/me/avatar', auth, async (req, res) => {
+app.delete('/users/me/avatar', auth, async (req, res) => {
     req.user.avatar = undefined
     const user = await req.user.save()
     res.status(200).send({OK:true, user})
+})
+
+app.get('/users/:id/avatar', async(req, res) =>{
+    const { id } = req.params
+    try {
+        const user = await User.findById(id) 
+        if(!user || !user.avatar){
+            throw new Error('No fue posible encontrar la imagen')
+        }
+        res.set('Content-Type', 'image/jpg')
+        res.send(user.avatar)
+    } catch (error) {
+        res.status(400).send({OK:false, error})
+    }
 })
 
 
