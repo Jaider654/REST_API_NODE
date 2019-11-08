@@ -8,7 +8,7 @@
     "dev": "env-cmd -f ./config/dev.env nodemon src/index.js",
     "test": "env-cmd -f ./config/test.env jest --watch"
   },
-  "jest":{
+  "jest": {
     "testEnvironment": "node"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "env-cmd": "^10.0.1",
-    "jest": "^24.9.0"
+    "jest": "^24.9.0",
+    "supertest": "^4.0.2"
   }
 }
