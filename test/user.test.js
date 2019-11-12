@@ -5,7 +5,6 @@ const mongoose = require('mongoose')
 const { User } = require('../src/models/user')
 
 const userOneId = new mongoose.Types.ObjectId()
-console.log(userOneId)
 const userOne = {
     "user": {
         "_id": userOneId,
@@ -24,13 +23,24 @@ beforeEach(async () => {
 })
 
 test('Should singup a new user', async() => {
-    await request(app).post('/users').send({
+    const response = await request(app).post('/users').send({
         "user": {
             "name":"Luis Miguel Vasco Castaño",
             "email":"luis.vasco@gmail.com",
             "password":"1234567890!**"
         }
     }).expect(201)
+
+    const user = await User.findById(response.body.user._id)
+    expect(user).not.toBeNull()
+
+    expect(response.body).toMatchObject({
+        "user":{
+            "name":"LUIS MIGUEL VASCO CASTAÑO",
+            "email":"luis.vasco@gmail.com"
+        },
+        token:user.tokens[0].token
+    })
 })
 
 test('Should not create an user with the same email', async() => {
@@ -70,4 +80,17 @@ test('Should not get profile for unauthenticated user', async() => {
         .get('/users/me')
         .send()
         .expect(401)
+})
+
+test('Should get an account deleted', async () => {
+    await request(app).delete('/users/me')
+            .set('Authorization', `Bearer ${userOne.user.tokens[0].token}`)
+            .send()
+            .expect(200)
+})
+
+test('Should not get an account deleted', async () => {
+    await request(app).delete('/users/me')
+            .send()
+            .expect(401)
 })

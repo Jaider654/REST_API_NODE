@@ -35,7 +35,7 @@ app.post('/users', async (req, res) => {
     try {
         const userSaved = await newUser.save()
         const token = await userSaved.generateAuthToken()
-        res.status(201).send({OK:true, userSaved, token})
+        res.status(201).send({OK:true, user:userSaved, token})
     } catch (error) {
         res.status(400).send({OK:false, error})           
     }
