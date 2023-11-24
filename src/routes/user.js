@@ -24,12 +24,12 @@ app.post('/users/login', async (req, res) => {
         const token = await user.generateAuthToken()
         res.status(200).send({OK:true, user, token})
     } catch (error) {
+        console.log(error)
         res.status(400).send({OK:false, error})
     } 
 })
 
 app.post('/users', async (req, res) => {
-
     const { user } = req.body
     const newUser = new User(user)
     try {
@@ -37,6 +37,7 @@ app.post('/users', async (req, res) => {
         const token = await userSaved.generateAuthToken()
         res.status(201).send({OK:true, user:userSaved, token})
     } catch (error) {
+        console.log(error.message)
         res.status(400).send({OK:false, error})           
     }
 })
